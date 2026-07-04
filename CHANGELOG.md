@@ -4,6 +4,144 @@ All notable changes to this project will be documented in this file.
 
 Releases are listed in reverse chronological order.
 
+## [2.29.0] - 2026-06-22
+
+A warm welcome and huge thank-you to our **first-time contributors** in this release:
+@adbsmith, @fangedhex, @hrubymar10, @jcarr, @jjsmackay, @KingKemar, @Zaunei and @zenhas. 🎉
+Thanks as well to our returning contributors (@bbr111, @j-webb) for the fixes and new sources below.
+
+### Added Sources
+
+- added Hochfelden, CH (Mondstaub ICS platform) (#6711)
+- added North West Resource Recovery & Recycling, TAS, AU (nwrrr_com_au) (#6634)
+- added Toulouse Métropole (toulouse_metropole_fr), FR (thanks @fangedhex) (#6637)
+- added SICTOM du Val de Saône (sictomvds_com), FR (thanks @KingKemar) (#6642)
+- added VEVG Vorpommern-Greifswald (vevg_karlsburg_de), DE (#6643)
+- added UBZ Umwelt- und Servicebetrieb Zweibrücken, DE (#6659)
+- added Mühlenkreis / Kreis Minden-Lübbecke (muehlenkreis_de), DE (#6638)
+- added Stadt Vlotho to abfall_export_vcal, DE (#6657)
+- added Lysa nad Labem (lysa_nad_labem_cz), CZ (thanks @zenhas) (#6648)
+- added kiedyodpady.pl universal source for Polish municipalities (kiedyodpady_pl), PL (#6650)
+- added Cotswold District Council (cotswold_gov_uk), UK (#6673)
+- added Vogel Disposal Service, US (thanks @jcarr) (#6669)
+- added Piberbach (piberbach_ooe_gv_at), AT (#6632)
+- added Koppl (koppl_at), AT (#6667)
+- added St. Kanzian am Klopeiner See (kanzian_at), AT (#6670)
+- added Schärding (schaerding_ooe_gv_at), AT (#6670)
+- added Fritzens (fritzens_gv_at), AT (#6672)
+- added Ort im Innkreis, AT (#6674)
+- added Angern an der March, AT (#6675)
+- added Herzogsdorf, AT (#6676)
+- added Micheldorf in Oberösterreich (micheldorf_at), AT (#6677)
+- added Schlierbach, AT (#6678)
+- added Enns (enns_at), AT (#6679)
+- added Kronstorf (kronstorf_at), AT (#6680)
+- added Felixdorf (felixdorf_gv_at), AT (#6681)
+- added Hart bei Graz (hartbeigraz_at), AT (#6682)
+- added Baumkirchen (baumkirchen_gv_at), AT (#6683)
+- added Jochberg (jochberg_gv_at), AT (#6684)
+- added Kirchberg am Wechsel, AT (#6685)
+- added Elsbethen (elsbethen_at), AT (#6686)
+- added St. Margarethen im Lungau (st_margarethen_salzburg_at), AT (#6687)
+- added Puch bei Hallein, AT (#6688)
+- added Bürmoos (buermoos_at), AT (#6689)
+- added Stadtgemeinde Berndorf (berndorf_gv_at), AT (#6691)
+- added Steyr (steyr_at), AT (#6692)
+- added Oberndorf bei Schwanenstadt (oberndorf_schwanenstadt_at), AT (#6693)
+- added Imst (imst_at), AT (#6695)
+- added Sollenau, AT (#6696)
+- added Zillingdorf (zillingdorf_at), AT (#6698)
+- added Gemeinde Passail, AT (#6699)
+- added Torre de' Passeri to Junker APP, IT (#6664)
+- added ab_peine_de, gross_gerau_de, ilm_kreis_de, kreis_ploen_de — converted from ICS YAML to full Python sources with street autocomplete (SiteparkIES) (#6638)
+
+### Fixed Sources
+
+- fixed kiedyodpady_pl: add lookahead_days parameter (default 365) (#6714)
+- fixed wokingham_gov_uk: update for redesigned council website (#6713)
+- fixed muellmax: remove unusable Düsseldorf service (thanks @Zaunei) (#6707)
+- fixed api_golemio_cz: handle containers with int or str type (thanks @hrubymar10) (#6704)
+- fixed waste_management (wmlink): add retry handling for transient API gateway errors (thanks @adbsmith) (#6705)
+- fixed thurrock_gov_uk: A-streets URL, date-range separators, bin-text separators, NBSP in town names, and street-name comma split (#6658)
+- fixed app_abfallplus_de: URL-decode HNR IDs before extracting display name (#6662)
+- fixed ecoharmonogram_pl: add Wodzisław Śląski via communityId 23 (#6656)
+- fixed vivab_se: handle week-based date format for infrequent services (e.g. Slam/septic tank) (#6635)
+- fixed mpo_krakow_pl: fix TypeError when API returns dict instead of list (#6633)
+- fixed fylde_gov_uk: changed integration parameter (thanks @j-webb) (#6640)
+- fixed abfall_neunkirchen_siegerland_de: add Cloudflare bypass, metadata, icon fix (#6636)
+- fixed awb_mechernich_de: expand coverage to full Kreis Euskirchen (#6668)
+- fixed umweltverbaende_at: remove duplicate PARAM_TRANSLATIONS (#6697)
+- fixed gemeinde24_at: add St. Marien (GemeindeID 83) test cases (#6694)
+- fixed citiesapps: add Breitenau (AT) to provider list (#6690)
+- fixed abfall_neunkirchen_siegerland_de, hilchenbach_de, kwb_goslar_de, landkreis_wittmund_de, lk_mecklenburgische_seenplatte_de, ostprignitz_ruppin_de: harmonised onto SiteparkIES shared service (#6638)
+
+### Other
+
+- feat(ics): add optional impersonate parameter to pass TLS-fingerprinting WAFs (thanks @jjsmackay) (#6646)
+- feat(customize): support fnmatch wildcards in the customize type key (#6630)
+- migrated lint and format tooling from black/flake8/isort to Ruff (#6639)
+- ci: migrate GitHub Actions off the deprecated Node 20 runtime (#6706)
+- docs: fix typos in documentation and codespellignore (#6653)
+
+## [2.28.0] - 2026-06-13
+
+A warm welcome and huge thank-you to our **first-time contributors** in this release:
+@asdfgasfhsn, @Brookterrace, @Dag0d, @havok2063, @iuginP, @jasonjhofmann, @obynio,
+@PersistentDabbler, @phpsystems and @ZeetLex. 🎉
+Thanks as well to our returning contributors (@anuj-dangi, @bbr111, @jan-tdy, @lit-af, @marsdeat)
+for the fixes and new sources below.
+
+### Added Sources
+
+- added Japan and ~248 municipalities (delight_system_com), JP (thanks @obynio) (#6612)
+- added KAW Mainz und Mainz-Bingen AöR (kaw_mainz_bingen_de), DE (thanks @Dag0d) (#6616)
+- added Baltimore County, MD, US (thanks @havok2063) (#6595)
+- added Selwyn District Council (selwyn_govt_nz), NZ (thanks @asdfgasfhsn) (#6591)
+- added RfD (Drammensregionen), NO (thanks @ZeetLex) (#6564)
+- added Boston Borough Council (boston_gov_uk), UK (#6594)
+- added Repentigny, QC, CA (thanks @lit-af) (#6603)
+- added Notre-Dame-du-Bon-Conseil, QC, CA (thanks @lit-af) (#6579)
+- added Geovest, IT (thanks @iuginP) (#6582)
+- added KOSIT EAST (kositeast_sk), SK (thanks @jan-tdy) (#6555)
+- added Liechtenstein Abfalltransport, LI (#6585)
+- added Ostprignitz-Ruppin, DE (thanks @anuj-dangi) (#6578)
+- added Landkreis Prignitz, DE (thanks @jan-tdy) (#6601)
+- added Gemünden (Wohra), DE (thanks @jan-tdy) (#6600)
+- added Red Bank, TN, US (thanks @PersistentDabbler) (#6567)
+
+### Fixed Sources
+
+- fixed okc_gov: restore every-other-week recycling via recycle_reference_date (#6621)
+- fixed stockport_gov_uk: send browser User-Agent to avoid 403 (thanks @phpsystems) (#6620)
+- fixed republicservices_com: weekly recurrence projection ('W' vs 'week') and bulk-waste icon (thanks @jasonjhofmann) (#6617)
+- fixed npdc_govt_nz: correct SSL certificate chain (#6613)
+- fixed data_montpellier3m_fr: complete TLS chain to fix SSL verification (#6610)
+- fixed northumberland_gov_uk: correct table column mapping and add yearless date parsing (#6609)
+- fixed northumberland_gov_uk: add required postcode step to fix CSRF flow (#6593)
+- fixed preston_gov_uk: require street for UPRN lookup; clarify parameter docs (#6605)
+- fixed publidata_fr: add CC Pévèle Carembault to EXTRA_INFO (#6604)
+- fixed edpevent_se: remove nodra provider (endpoint now login-protected) (#6592)
+- fixed wanneroo_wa_gov_au: handle "Week AFTER NEXT" rhythm and update test cases (#6589)
+- fixed gastrikeatervinnare_se: add icons for new plastic, paper and garden bins (#6588)
+- fixed south_norfolk_and_broadland_gov_uk: correct SOAP calendar day offset (#6587)
+- fixed opendata_bordeauxmetropole_fr: skip records with broken geometry (#6586)
+- fixed bracknell_forest_gov_uk: handle null firstDate (thanks @jan-tdy) (#6571)
+- fixed bedford_gov_uk: update data parsing (thanks @jan-tdy) (#6566)
+- fixed darlington_gov_uk: improve parsing (thanks @Brookterrace) (#6584)
+
+### Deprecated
+
+- deprecated muellmax_de RSAG Rhein-Sieg-Kreis entry in favour of rsag_de (#6614)
+- deprecated awb_mainz_bingen_de in favour of kaw_mainz_bingen_de (kept as a compatibility shim) (#6616)
+
+### Other
+
+- fixed config flow: allow editing a sensor value_template after a preset was previously set (#6623)
+- added generation of the source-owner mapping (SOURCE_CODEOWNERS) from source module metadata (thanks @bbr111) (#5577)
+- added a GitHub Actions workflow for automatic issue assignment (thanks @jan-tdy) (#6565)
+- docs: Norfolk councils and Dartford Council, UK (thanks @marsdeat) (#6577)
+- docs: Local Government Reorganisation notes for various England, UK sources (thanks @marsdeat) (#6596)
+
 ## [2.27.0] - 2026-06-07
 
 A warm welcome and huge thank-you to our **first-time contributors** in this release —

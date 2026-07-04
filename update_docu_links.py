@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import argparse
 import hashlib
 import importlib
 import inspect
@@ -118,6 +117,32 @@ def extract_urls_from_text(text: str) -> Tuple[str, dict[str, str]]:
     return cleaned_text.strip(), urls
 
 
+def _normalize_owners(owners) -> list:
+    """Normalise a SOURCE_CODEOWNERS / codeowners value into a sorted list of @handles.
+
+    Accepts:
+    - None / falsy  -> []
+    - str            -> treated as a single handle (not iterated character-by-character)
+    - list           -> each element that is a non-empty str is kept; others are
+                       silently dropped (guards against accidentally mixed-type lists)
+
+    Every handle is normalised to start with '@'.
+    """
+    if not owners:
+        return []
+    if isinstance(owners, str):
+        owners = [owners]
+    result: list[str] = []
+    for entry in owners:
+        if not isinstance(entry, str) or not entry.strip():
+            continue
+        handle = entry.strip()
+        if not handle.startswith("@"):
+            handle = f"@{handle}"
+        result.append(handle)
+    return sorted(set(result))
+
+
 class SourceInfo:
     def __init__(
         self,
@@ -131,6 +156,7 @@ class SourceInfo:
         custom_param_translation: dict[str, dict[str, str]] = {},
         custom_param_description: dict[str, dict[str, str]] = {},
         custom_howto: dict[str, str] = {},
+        source_owners: list[str] | None = None,
     ):
         self._filename = filename
         self._module = module
@@ -191,6 +217,7 @@ class SourceInfo:
         )
 
         self._custom_howto = sort_param_dict(custom_howto)
+        self._source_owners = _normalize_owners(source_owners)
 
         for k, v in custom_param_translation.items():
             if k not in LANGUAGES:
@@ -263,6 +290,10 @@ class SourceInfo:
     def url_placeholders(self):
         return self._url_placeholders
 
+    @property
+    def source_owners(self):
+        return self._source_owners
+
 
 class IcsSourceInfo(SourceInfo):
     def __init__(
@@ -274,6 +305,8 @@ class IcsSourceInfo(SourceInfo):
         limit_params: list[str],
         extra_info_default_params: dict[str, Any] = {},
         custom_howto: dict[str, str] = {},
+        source_owners: list | None = None,
+        ics_stem: str | None = None,
     ):
         _, ics_sources = get_source_by_file("ics")
         ics_source = ics_sources[0]
@@ -296,7 +329,16 @@ class IcsSourceInfo(SourceInfo):
             custom_param_translation=translations,
             custom_param_description=descriptions,
             custom_howto=custom_howto,
+            source_owners=source_owners,
         )
+        # ics_stem: the YAML file stem (e.g. "ab_peine_de") used as the key in
+        # source_owners.json so that the notify workflow can match what a bug reporter
+        # types in the "Source Name" field.
+        self._ics_stem = ics_stem
+
+    @property
+    def ics_stem(self) -> str | None:
+        return self._ics_stem
 
 
 class Section:
@@ -328,6 +370,7 @@ class IcsSourceData(TypedDict):
     default_params: NotRequired[dict[str, Any]]
     test_cases: dict[str, dict[str, Any]]
     extra_info: NotRequired[list[ExtraInfoDict]]
+    codeowners: NotRequired[list]
 
 
 def split_camel_and_snake_case(s: str) -> list[str]:
@@ -429,6 +472,7 @@ def get_source_by_file(file: str) -> tuple[ModuleType, list[SourceInfo]]:
     param_translations = getattr(module, "PARAM_TRANSLATIONS", {})
     param_descriptions = getattr(module, "PARAM_DESCRIPTIONS", {})
     howto = getattr(module, "HOW_TO_GET_ARGUMENTS_DESCRIPTION", {})
+    source_owners = getattr(module, "SOURCE_CODEOWNERS", [])
 
     filename = f"/doc/source/{file}.md"
     sources = []
@@ -444,6 +488,7 @@ def get_source_by_file(file: str) -> tuple[ModuleType, list[SourceInfo]]:
                 custom_param_translation=param_translations,
                 custom_param_description=param_descriptions,
                 custom_howto=howto,
+                source_owners=source_owners,
             )
         )
 
@@ -465,6 +510,7 @@ def get_source_by_file(file: str) -> tuple[ModuleType, list[SourceInfo]]:
                 custom_param_description=param_descriptions,
                 extra_info_default_params=e.get("default_params", {}),
                 custom_howto=howto,
+                source_owners=source_owners,
             )
         )
     return module, sources
@@ -501,6 +547,7 @@ def browse_ics_yaml() -> list[SourceInfo]:
 
             country = data.get("country", f.stem.split("_")[-1])
             # extract country code
+            ics_owners = _normalize_owners(data.get("codeowners", []))
             sources.append(
                 IcsSourceInfo(
                     filename=f"/doc/ics/{filename.name}",
@@ -510,6 +557,8 @@ def browse_ics_yaml() -> list[SourceInfo]:
                     limit_params=[],
                     extra_info_default_params=data.get("default_params", {}),
                     custom_howto=howto,
+                    source_owners=ics_owners,
+                    ics_stem=f.stem,
                 )
             )
             if "extra_info" in data:
@@ -523,6 +572,8 @@ def browse_ics_yaml() -> list[SourceInfo]:
                             limit_params=[],
                             extra_info_default_params=data.get("default_params", {}),
                             custom_howto=howto,
+                            source_owners=ics_owners,
+                            ics_stem=f.stem,
                         )
                     )
 
@@ -533,7 +584,7 @@ def browse_ics_yaml() -> list[SourceInfo]:
 
 def write_ics_md_file(filename: Path, data: IcsSourceData) -> None:
     """Write a markdown file for a ICS .yaml file"""
-    if not "en" in data["howto"]:
+    if "en" not in data["howto"]:
         print(
             f"howto in {filename} does not contain an english translation, please add one"
         )
@@ -615,6 +666,7 @@ def beautify_url(url):
 def update_sources_json(countries: dict[str, list[SourceInfo]]) -> None:
     output: dict[str, list[dict[str, str | dict[str, Any]]]] = {}
     source_metadata_by_module: dict[str, dict[str, Any]] = {}
+    source_owners_by_module: dict[str, list[str]] = {}
 
     for country in ["Generic"] + sorted(c for c in countries if c != "Generic"):
         output[country] = []
@@ -645,6 +697,18 @@ def update_sources_json(countries: dict[str, list[SourceInfo]]) -> None:
                     "urls": e.url_placeholders,
                 }
 
+            # ICS providers are keyed by their YAML file stem (e.g. "ab_peine_de")
+            # so the notify workflow can match what a bug reporter types in the
+            # "Source Name" field (module == "ics" for all ICS providers).
+            if isinstance(e, IcsSourceInfo) and e.ics_stem is not None:
+                owner_key = e.ics_stem
+            else:
+                owner_key = module
+            source_owners_by_module.setdefault(owner_key, [])
+            source_owners_by_module[owner_key] = sorted(
+                set(source_owners_by_module[owner_key]) | set(e.source_owners)
+            )
+
     with open(
         "custom_components/waste_collection_schedule/sources.json",
         "w",
@@ -657,6 +721,18 @@ def update_sources_json(countries: dict[str, list[SourceInfo]]) -> None:
     metadata_file = "custom_components/waste_collection_schedule/source_metadata.json"
     with open(metadata_file, "w", encoding="utf-8", newline="\n") as f:
         json.dump(source_metadata_by_module, f, indent=2, ensure_ascii=False)
+
+    source_owner_file = ".github/source_owners.json"
+    source_owner_output = {
+        "default": [],
+        "sources": {
+            module: owners
+            for module, owners in sorted(source_owners_by_module.items())
+            if owners
+        },
+    }
+    with open(source_owner_file, "w", encoding="utf-8") as f:
+        json.dump(source_owner_output, f, indent=2, ensure_ascii=False)
 
 
 def get_custom_translations(
@@ -691,9 +767,9 @@ def get_custom_translations(
 
             source_doc_url[module] = DOC_URL_BASE + e.filename
 
-            if not module in param_translations:
+            if module not in param_translations:
                 param_translations[module] = {}
-            if not module in param_descriptions:
+            if module not in param_descriptions:
                 param_descriptions[module] = {}
 
             for param in sorted(e.params):
@@ -1067,6 +1143,10 @@ COUNTRYCODES = [
     {
         "code": "it",
         "name": "Italy",
+    },
+    {
+        "code": "jp",
+        "name": "Japan",
     },
     {
         "code": "lt",
