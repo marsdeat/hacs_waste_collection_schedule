@@ -74,6 +74,10 @@ TEST_CASES = {
             "Authority": "2610",
         }
     },
+    "South Norfolk (early food waste) - postcode": {
+        "postcode": "NR15 2XT",
+        "address": "1 Francis Road, Long Stratton, Norfolk, NR15 2XT",
+    },
 }
 
 ICON_MAP = {
